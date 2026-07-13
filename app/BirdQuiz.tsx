@@ -124,10 +124,10 @@ export default function BirdQuiz() {
           <div className="intro-copy">
             <p className="eyebrow">WHICH BIRD ARE YOU TODAY?</p>
             <h1 id="intro-title"><span>今天，</span>测测你的<br /><em>鸟格</em>特质</h1>
-            <p className="intro-note">沿着 32 个生活片段，找到藏在你性格里的那只鸟。</p>
+            <p className="intro-note">32 个生活现场，测测你的社交电量、行动节奏和隐藏脑回路。</p>
 
             <div className="intro-actions">
-              <button className="primary-button" onClick={startFresh}>出发 · 开始测试 <span>➜</span></button>
+              <button className="primary-button" onClick={startFresh}>开测 · 看看我是啥鸟 <span>➜</span></button>
               {hasSavedProgress && (
                 <button className="resume-button" onClick={() => setScreen("quiz")}>继续上次的第 {current + 1} 题</button>
               )}
@@ -172,9 +172,9 @@ export default function BirdQuiz() {
           </div>
 
           <div className="question-wrap" key={question.id}>
-            <p className="question-kicker">想象一下这个画面</p>
+            <p className="question-kicker">代入一下</p>
             <h2 id="question-title">{question.scene}</h2>
-            <p className="question-help">哪一种反应更接近真实的你？</p>
+            <p className="question-help">别找标准答案，选你的第一反应。</p>
 
             <div className="answer-stage">
               <div className="statement-card statement-left">
@@ -225,7 +225,7 @@ export default function BirdQuiz() {
         <section className="loading-screen" aria-live="polite">
           <div className="paper-grain" />
           <div className="loading-bird">●</div>
-          <p>正在辨认你的鸟格足迹…</p>
+          <p>正在匹配你的鸟类脑回路…</p>
           <div className="loading-line"><span /></div>
         </section>
       )}
@@ -249,7 +249,7 @@ export default function BirdQuiz() {
           </div>
           {error && <p className="error-message">{error}</p>}
           <div className="result-actions">
-            <button className="primary-button" onClick={copyResult}>复制我的结果</button>
+            <button className="primary-button" onClick={copyResult}>复制结果 · 发群里</button>
             <button className="resume-button" onClick={startFresh}>再测一次</button>
           </div>
           <p className="result-disclaimer">测试结果仅供自我探索，请勿用于严肃人生决策哦！</p>

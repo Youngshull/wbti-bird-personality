@@ -18,14 +18,14 @@ export type BirdResult = {
 };
 
 export const QUESTIONS: Question[] = [
-  { id: 1, axis: "pace", scene: "来到一个从没去过的湿地", left: "先看看地图和环境，再决定往哪走", right: "先迈出去，沿路遇见什么就看什么" },
-  { id: 2, axis: "pace", scene: "临时收到一项新任务", left: "留一点时间理解要求，稳稳开场", right: "立刻动手，在行动中快速调整" },
-  { id: 3, axis: "pace", scene: "朋友们还在犹豫午饭吃什么", left: "等大家想清楚，晚一点也没关系", right: "先提一个方案，把队伍带起来" },
-  { id: 4, axis: "pace", scene: "现场突然出现小状况", left: "先判断轻重，找到最稳妥的处理方式", right: "马上处理，先让事情继续运转" },
-  { id: 5, axis: "pace", scene: "拥有一个完全空白的周末", left: "慢慢进入状态，享受没有催促的节奏", right: "很快安排活动，想把一天过得饱满" },
-  { id: 6, axis: "pace", scene: "看到一条需要回复的消息", left: "想好怎么说，再认真回复", right: "趁着有感觉，马上回过去" },
-  { id: 7, axis: "pace", scene: "学习一个新工具", left: "先熟悉基本方法，再逐步尝试", right: "直接上手点一遍，很快就能摸清" },
-  { id: 8, axis: "pace", scene: "发现一个很想抓住的机会", left: "确认条件合适，再投入精力", right: "先争取下来，办法可以边走边找" },
+  { id: 1, axis: "pace", scene: "周五晚上，朋友突然喊你明早去看日出", left: "先查天气、路线和起床时间，确认不会白跑", right: "先回一句“冲！”，闹钟和攻略路上再说" },
+  { id: 2, axis: "pace", scene: "群里出现一句“这个谁来做”，然后全员装死", left: "先把需求和坑点看明白，再决定怎么接", right: "我先来！边开工边把队友一个个摇醒" },
+  { id: 3, axis: "pace", scene: "奶茶店新品名字长得像一篇论文", left: "看看配料和评价，最后稳稳点回熟悉款", right: "名字越离谱越想试，踩雷也算今日素材" },
+  { id: 4, axis: "pace", scene: "出门五分钟，发现手机只剩 8% 的电", left: "立刻切省电模式，重新规划今天的手机用量", right: "问题不大，先玩着，真没电了再找充电宝" },
+  { id: 5, axis: "pace", scene: "周末醒来，发现今天一件正事都没有", left: "先瘫一会儿，让灵魂慢慢加载完成", right: "马上搜活动，空白周末必须现场长出剧情" },
+  { id: 6, axis: "pace", scene: "喜欢的人发来一句“在干嘛”", left: "输入、删除、再输入，组织好语气再发送", right: "秒回！话题能不能聊起来先开口再说" },
+  { id: 7, axis: "pace", scene: "朋友安利了一个据说超好用的新 App", left: "先看看教程和评论，确认值得迁移再开始", right: "先下了再说，所有按钮点一遍就会用了" },
+  { id: 8, axis: "pace", scene: "刷到一个很心动、名额有限的活动", left: "先看时间地点和退款规则，再认真决定", right: "先抢名额！行程冲突可以之后想办法解决" },
 
   { id: 9, axis: "social", scene: "来到一场几乎没有熟人的活动", left: "先安静观察，遇到投缘的人再聊", right: "主动打招呼，很快认识一圈新朋友" },
   { id: 10, axis: "social", scene: "经历了忙碌的一天", left: "独处一会儿，能量会慢慢回来", right: "找朋友说说话，心情很快就亮起来" },
@@ -56,22 +56,22 @@ export const QUESTIONS: Question[] = [
 ];
 
 export const BIRDS: Record<string, BirdResult> = {
-  "----": { id: "mood-poet", name: "氛围文青", english: "MOOD POET", image: "/birds/mood-poet.png", accent: "#ef5b2a", body: "你对光线、声音和情绪的细微变化格外敏感。你喜欢给生活留一点缓慢生长的空间，也很会捕捉那些容易被忽略的美好瞬间。和你相处的人，常常会重新发现日常里的诗意。" },
-  "---+": { id: "social-diver", name: "社恐潜水员", english: "SOCIAL DIVER", image: "/birds/social-diver.png", accent: "#79508f", body: "你习惯先在自己的水域里观察，确认安全和有趣之后再浮出水面。安静给了你清晰的判断力，熟悉的关系则会唤醒你的幽默与活力。你珍惜有质量的连接，也懂得保护自己的能量。" },
-  "--+-": { id: "steady-bro", name: "稳健老哥", english: "STEADY BRO", image: "/birds/steady-bro.png", accent: "#145b91", body: "你沉得住气，遇到变化时会先看清水面下的情况。可靠、克制和耐心构成了你的节奏，真正需要出手时，你往往能稳稳接住局面。身边的人会把你当作值得信任的定心丸。" },
-  "--++": { id: "big-picture", name: "大局控", english: "BIG PICTURE", image: "/birds/big-picture.png", accent: "#315f24", body: "你擅长从高处看见事情之间的联系，也愿意花时间理解全局。面对复杂问题，你会整理线索、判断方向，再把精力放到关键位置。你的安静里藏着清醒的战略感。" },
-  "-+--": { id: "curious-bean", name: "好奇宝宝", english: "CURIOUS BEAN", image: "/birds/curious-bean.png", accent: "#df4f4f", body: "世界对你来说像一片随时会冒出新发现的芦苇荡。你愿意靠近、提问和尝试，也很容易把这份新鲜感传给身边的人。你的好奇心让普通的一天多出许多支线剧情。" },
-  "-+-+": { id: "go-with-it", name: "随缘玩家", english: "GO WITH IT", image: "/birds/go-with-it.png", accent: "#126aa5", body: "你很会顺着环境找到舒服的水流，变化很少让你慌张。你相信体验会带来答案，也擅长在偶然里发现乐趣。和你同行，行程常常轻松又充满意外惊喜。" },
-  "-++-": { id: "care-pack", name: "暖心管家", english: "CARE PACK", image: "/birds/care-pack.png", accent: "#e45a22", body: "你对身边人的状态有天然雷达，总能留意到那些还没说出口的需要。温柔在你这里带着行动力：递上一杯水、补好一个缺口、记住一件小事。你让团队拥有被照顾的踏实感。" },
-  "-+++": { id: "team-mode", name: "组队党", english: "TEAM MODE", image: "/birds/team-mode.png", accent: "#3f6f22", body: "你喜欢和伙伴共享路线、发现与笑声。对你来说，一群人彼此照应，会让旅程更有意义。你善于融入协作，也会自然地维护团队的默契与安全感。" },
-  "+---": { id: "action-first", name: "冲锋选手", english: "ACTION FIRST", image: "/birds/action-first.png", accent: "#38651f", body: "你对机会的反应很快，想到就愿意下水试一试。行动会帮你整理思路，真实反馈也比长时间犹豫更能给你答案。你的果断经常为团队打开第一条路。" },
-  "+--+": { id: "main-character", name: "湖边显眼包", english: "MAIN CHARACTER", image: "/birds/main-character.png", accent: "#7e4b91", body: "你拥有很强的现场存在感，也愿意用自己的方式留下鲜明印记。表达、创意和一点点戏剧感，让你走到哪里都容易成为画面中心。你给平常时刻加上了值得记住的高光。" },
-  "+-+-": { id: "nailed-it", name: "拿捏大师", english: "NAILED IT", image: "/birds/nailed-it.png", accent: "#1769a3", body: "你出手利落，背后却有细致的观察和判断。面对目标时，你会先锁定关键，再用恰到好处的动作完成它。你的效率来自专注，也来自对时机的敏锐把握。" },
-  "+-++": { id: "foodie-champ", name: "干饭狠人", english: "FOODIE CHAMP", image: "/birds/foodie-champ.png", accent: "#3d6a27", body: "你对喜欢的事投入直接又专注，认真享受也认真完成。清晰的目标会迅速调动你的能量，过程里的细节也很难逃过你的眼睛。你用充足的行动力，把小事做出专业范儿。" },
-  "++--": { id: "hype-buddy", name: "热场达人", english: "HYPE BUDDY", image: "/birds/hype-buddy.png", accent: "#f05b24", body: "你自带升温能力，常常一句话就能让场子活起来。热情、响应和分享欲让你成为人群里的能量补给站。你喜欢大家一起进入状态，也享受每一次快乐的回声。" },
-  "++-+": { id: "instant-bestie", name: "社牛搭子", english: "INSTANT BESTIE", image: "/birds/instant-bestie.png", accent: "#dc5d12", body: "你很容易越过陌生感，快速找到和别人相处的共同频道。你愿意发起对话、交换情报、临时组队，也常把路人变成同行伙伴。你的开放让世界显得格外热闹。" },
-  "+++-": { id: "squad-leader", name: "领队大哥", english: "SQUAD LEADER", image: "/birds/squad-leader.png", accent: "#155993", body: "你在行动中会自然地关注方向与队伍状态。目标明确时，你愿意承担责任、协调节奏，也能鼓励大家跟上。你的带领很有感染力，让同行的人更敢向前。" },
-  "++++": { id: "stock-it-up", name: "囤货狂魔", english: "STOCK IT UP", image: "/birds/stock-it-up.png", accent: "#3d6d28", body: "你喜欢为未来多准备一步，资源、信息和工具都能被你安排得明明白白。未雨绸缪会给你安全感，也让你在关键时刻总有东西可用。你的储备能力，是团队里很实在的底气。" },
+  "----": { id: "mood-poet", name: "氛围文青", english: "MOOD POET", image: "/birds-v2/mood-poet.png", accent: "#ef5b2a", body: "你对光线、声音和情绪的细微变化格外敏感。你喜欢给生活留一点缓慢生长的空间，也很会捕捉那些容易被忽略的美好瞬间。和你相处的人，常常会重新发现日常里的诗意。" },
+  "---+": { id: "social-diver", name: "社恐潜水员", english: "SOCIAL DIVER", image: "/birds-v2/social-diver.png", accent: "#79508f", body: "你习惯先在自己的水域里观察，确认安全和有趣之后再浮出水面。安静给了你清晰的判断力，熟悉的关系则会唤醒你的幽默与活力。你珍惜有质量的连接，也懂得保护自己的能量。" },
+  "--+-": { id: "steady-bro", name: "稳健老哥", english: "STEADY BRO", image: "/birds-v2/steady-bro.png", accent: "#145b91", body: "你沉得住气，遇到变化时会先看清水面下的情况。可靠、克制和耐心构成了你的节奏，真正需要出手时，你往往能稳稳接住局面。身边的人会把你当作值得信任的定心丸。" },
+  "--++": { id: "big-picture", name: "大局控", english: "BIG PICTURE", image: "/birds-v2/big-picture.png", accent: "#315f24", body: "你擅长从高处看见事情之间的联系，也愿意花时间理解全局。面对复杂问题，你会整理线索、判断方向，再把精力放到关键位置。你的安静里藏着清醒的战略感。" },
+  "-+--": { id: "curious-bean", name: "好奇宝宝", english: "CURIOUS BEAN", image: "/birds-v2/curious-bean.png", accent: "#df4f4f", body: "世界对你来说像一片随时会冒出新发现的芦苇荡。你愿意靠近、提问和尝试，也很容易把这份新鲜感传给身边的人。你的好奇心让普通的一天多出许多支线剧情。" },
+  "-+-+": { id: "go-with-it", name: "随缘玩家", english: "GO WITH IT", image: "/birds-v2/go-with-it.png", accent: "#126aa5", body: "你很会顺着环境找到舒服的水流，变化很少让你慌张。你相信体验会带来答案，也擅长在偶然里发现乐趣。和你同行，行程常常轻松又充满意外惊喜。" },
+  "-++-": { id: "care-pack", name: "暖心管家", english: "CARE PACK", image: "/birds-v2/care-pack.png", accent: "#e45a22", body: "你对身边人的状态有天然雷达，总能留意到那些还没说出口的需要。温柔在你这里带着行动力：递上一杯水、补好一个缺口、记住一件小事。你让团队拥有被照顾的踏实感。" },
+  "-+++": { id: "team-mode", name: "组队党", english: "TEAM MODE", image: "/birds-v2/team-mode.png", accent: "#3f6f22", body: "你喜欢和伙伴共享路线、发现与笑声。对你来说，一群人彼此照应，会让旅程更有意义。你善于融入协作，也会自然地维护团队的默契与安全感。" },
+  "+---": { id: "action-first", name: "冲锋选手", english: "ACTION FIRST", image: "/birds-v2/action-first.png", accent: "#38651f", body: "你对机会的反应很快，想到就愿意下水试一试。行动会帮你整理思路，真实反馈也比长时间犹豫更能给你答案。你的果断经常为团队打开第一条路。" },
+  "+--+": { id: "main-character", name: "湖边显眼包", english: "MAIN CHARACTER", image: "/birds-v2/main-character.png", accent: "#7e4b91", body: "你拥有很强的现场存在感，也愿意用自己的方式留下鲜明印记。表达、创意和一点点戏剧感，让你走到哪里都容易成为画面中心。你给平常时刻加上了值得记住的高光。" },
+  "+-+-": { id: "nailed-it", name: "拿捏大师", english: "NAILED IT", image: "/birds-v2/nailed-it.png", accent: "#1769a3", body: "你出手利落，背后却有细致的观察和判断。面对目标时，你会先锁定关键，再用恰到好处的动作完成它。你的效率来自专注，也来自对时机的敏锐把握。" },
+  "+-++": { id: "foodie-champ", name: "干饭狠人", english: "FOODIE CHAMP", image: "/birds-v2/foodie-champ.png", accent: "#3d6a27", body: "你对喜欢的事投入直接又专注，认真享受也认真完成。清晰的目标会迅速调动你的能量，过程里的细节也很难逃过你的眼睛。你用充足的行动力，把小事做出专业范儿。" },
+  "++--": { id: "hype-buddy", name: "热场达人", english: "HYPE BUDDY", image: "/birds-v2/hype-buddy.png", accent: "#f05b24", body: "你自带升温能力，常常一句话就能让场子活起来。热情、响应和分享欲让你成为人群里的能量补给站。你喜欢大家一起进入状态，也享受每一次快乐的回声。" },
+  "++-+": { id: "instant-bestie", name: "社牛搭子", english: "INSTANT BESTIE", image: "/birds-v2/instant-bestie.png", accent: "#dc5d12", body: "你很容易越过陌生感，快速找到和别人相处的共同频道。你愿意发起对话、交换情报、临时组队，也常把路人变成同行伙伴。你的开放让世界显得格外热闹。" },
+  "+++-": { id: "squad-leader", name: "领队大哥", english: "SQUAD LEADER", image: "/birds-v2/squad-leader.png", accent: "#155993", body: "你在行动中会自然地关注方向与队伍状态。目标明确时，你愿意承担责任、协调节奏，也能鼓励大家跟上。你的带领很有感染力，让同行的人更敢向前。" },
+  "++++": { id: "stock-it-up", name: "囤货狂魔", english: "STOCK IT UP", image: "/birds-v2/stock-it-up.png", accent: "#3d6d28", body: "你喜欢为未来多准备一步，资源、信息和工具都能被你安排得明明白白。未雨绸缪会给你安全感，也让你在关键时刻总有东西可用。你的储备能力，是团队里很实在的底气。" },
 };
 
 export function scoreQuiz(answers: number[]) {
