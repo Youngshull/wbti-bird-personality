@@ -41,3 +41,14 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+
+# Tencent Cloud EdgeOne
+.edgeone/*
+.tef_dist/*
+/edgeone-dist/
+
+# TypeScript incremental cache
+*.tsbuildinfo
+
+# 2048px illustration masters stay on the author machine
+/art/birds-v3/

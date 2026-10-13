@@ -1,260 +1,266 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { BIRDS, BirdResult, QUESTIONS, scoreQuiz } from "./lib/quiz";
+import { useCallback, useEffect, useRef, useState } from "react";
+import BirdScreen from "./components/BirdScreen";
+import GalleryScreen from "./components/GalleryScreen";
+import IntroScreen from "./components/IntroScreen";
+import PosterSheet from "./components/PosterSheet";
+import QuizScreen from "./components/QuizScreen";
+import ResultScreen from "./components/ResultScreen";
+import RevealScreen from "./components/RevealScreen";
+import { birdImage, BIRDS_BY_ID, QUESTIONS, scoreQuiz, type QuizOutcome } from "./lib/quiz";
+import { clearProgress, readLastAnswers, readProgress, saveLastAnswers, saveProgress } from "./lib/storage";
 
-type Screen = "intro" | "quiz" | "loading" | "result";
+type View =
+  | { name: "intro" }
+  | { name: "quiz" }
+  | { name: "reveal" }
+  | { name: "result" }
+  | { name: "gallery" }
+  | { name: "bird"; id: string; shared?: boolean };
 
-const ANSWER_OPTIONS = [
-  { value: -2, label: "非常像我", side: "left" },
-  { value: -1, label: "比较像我", side: "left" },
-  { value: 1, label: "比较像我", side: "right" },
-  { value: 2, label: "非常像我", side: "right" },
-] as const;
+type HistoryState = { wbti?: View; wbtiDepth?: number } & Record<string, unknown>;
 
-const HERO_BIRDS = [
-  BIRDS["--+-"],
-  BIRDS["++--"],
-  BIRDS["-++-"],
-  BIRDS["+---"],
-  BIRDS["----"],
-  BIRDS["-+--"],
-];
+const ADVANCE_DELAY = 220;
+const DEFAULT_TITLE = "WBTI 鸟格测试｜今天的你是哪一只鸟？";
+
+const emptyAnswers = () => Array<number>(QUESTIONS.length).fill(0);
+const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function preloadBird(id: string) {
+  const image = new Image();
+  image.sizes = "(min-width: 900px) 440px, 84vw";
+  image.srcset = `${birdImage(id, 480)} 480w, ${birdImage(id, 960)} 960w`;
+}
 
 export default function BirdQuiz() {
-  const [screen, setScreen] = useState<Screen>("intro");
+  const [view, setView] = useState<View>({ name: "intro" });
+  const [answers, setAnswers] = useState<number[]>(emptyAnswers);
   const [current, setCurrent] = useState(0);
-  const [answers, setAnswers] = useState<number[]>(Array(QUESTIONS.length).fill(0));
-  const [result, setResult] = useState<BirdResult | null>(null);
-  const [hasSavedProgress, setHasSavedProgress] = useState(false);
-  const [error, setError] = useState("");
+  const [outcome, setOutcome] = useState<QuizOutcome | null>(null);
+  const [isAdvancing, setIsAdvancing] = useState(false);
+  const [posterOpen, setPosterOpen] = useState(false);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const timers = useRef<number[]>([]);
+  const hasNavigated = useRef(false);
+
+  const later = useCallback((callback: () => void, delay: number) => {
+    timers.current.push(window.setTimeout(callback, delay));
+  }, []);
+
+  const clearTimers = useCallback(() => {
+    timers.current.forEach((timer) => window.clearTimeout(timer));
+    timers.current = [];
+  }, []);
+
+  // 页面内的每一步都写进浏览器历史，手机返回手势不会直接退出网站。
+  const go = useCallback((next: View, mode: "push" | "replace" = "push") => {
+    const state = (window.history.state ?? {}) as HistoryState;
+    const depth = (state.wbtiDepth ?? 0) + (mode === "push" ? 1 : 0);
+    const url = next.name === "bird" && next.shared ? window.location.href : window.location.pathname;
+    const entry: HistoryState = { ...state, wbti: next, wbtiDepth: depth };
+    if (mode === "push") window.history.pushState(entry, "", url);
+    else window.history.replaceState(entry, "", url);
+    hasNavigated.current = true;
+    setView(next);
+  }, []);
+
+  const leave = useCallback((fallback: View) => {
+    const state = (window.history.state ?? {}) as HistoryState;
+    if ((state.wbtiDepth ?? 0) > 0) window.history.back();
+    else go(fallback, "replace");
+  }, [go]);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem("wbti-progress");
-    if (!saved) return;
-    try {
-      const parsed = JSON.parse(saved) as { answers: number[]; current: number };
-      if (Array.isArray(parsed.answers) && parsed.answers.some(Boolean)) {
-        setAnswers(parsed.answers.slice(0, QUESTIONS.length));
-        setCurrent(Math.min(parsed.current, QUESTIONS.length - 1));
-        setHasSavedProgress(true);
+    const frame = window.requestAnimationFrame(() => {
+      const progress = readProgress();
+      if (progress) {
+        setAnswers(progress.answers);
+        setCurrent(progress.current);
       }
-    } catch {
-      window.localStorage.removeItem("wbti-progress");
-    }
+      const lastAnswers = readLastAnswers();
+      if (lastAnswers) setOutcome(scoreQuiz(lastAnswers));
+
+      const sharedId = new URLSearchParams(window.location.search).get("bird");
+      const state = (window.history.state ?? {}) as HistoryState;
+      if (sharedId && BIRDS_BY_ID[sharedId]) {
+        const next: View = { name: "bird", id: sharedId, shared: true };
+        window.history.replaceState({ ...state, wbti: next, wbtiDepth: 0 }, "");
+        setView(next);
+      } else {
+        window.history.replaceState({ ...state, wbti: { name: "intro" }, wbtiDepth: 0 }, "");
+      }
+    });
+
+    const onPopState = (event: PopStateEvent) => {
+      const next = (event.state as HistoryState | null)?.wbti;
+      hasNavigated.current = true;
+      setPosterOpen(false);
+      setIsAdvancing(false);
+      setView(next && next.name !== "reveal" ? next : { name: "intro" });
+    };
+    window.addEventListener("popstate", onPopState);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("popstate", onPopState);
+    };
   }, []);
+
+  // 切换页面时清掉未完成的自动翻题，并把焦点和滚动位置带到新页面顶部。
+  useEffect(() => {
+    if (view.name !== "quiz" && view.name !== "reveal") {
+      clearTimers();
+    }
+    if (!hasNavigated.current) return;
+    window.scrollTo({ top: 0 });
+    const frame = window.requestAnimationFrame(() => headingRef.current?.focus({ preventScroll: true }));
+    return () => window.cancelAnimationFrame(frame);
+  }, [view, clearTimers]);
 
   useEffect(() => {
-    if (screen !== "quiz") return;
-    window.localStorage.setItem("wbti-progress", JSON.stringify({ answers, current }));
-  }, [answers, current, screen]);
+    if (view.name !== "quiz" || !answers.some(Boolean)) return;
+    saveProgress({ answers, current });
+  }, [answers, current, view.name]);
 
-  const question = QUESTIONS[current];
-  const progress = ((current + 1) / QUESTIONS.length) * 100;
-  const answeredCount = useMemo(() => answers.filter(Boolean).length, [answers]);
+  useEffect(() => {
+    const bird = view.name === "bird" ? BIRDS_BY_ID[view.id] : view.name === "result" ? outcome?.bird : null;
+    document.title = bird ? `${bird.name}（${bird.species}）｜WBTI 鸟格测试` : DEFAULT_TITLE;
+  }, [view, outcome]);
 
-  const startFresh = () => {
-    setAnswers(Array(QUESTIONS.length).fill(0));
+  const resumeAt = answers.some(Boolean) ? current : null;
+
+  const start = useCallback(() => {
+    clearTimers();
+    clearProgress();
+    setAnswers(emptyAnswers());
     setCurrent(0);
-    setResult(null);
-    setError("");
-    setHasSavedProgress(false);
-    window.localStorage.removeItem("wbti-progress");
-    setScreen("quiz");
-  };
+    setIsAdvancing(false);
+    go({ name: "quiz" });
+  }, [clearTimers, go]);
 
-  const submitAnswers = useCallback(async (nextAnswers: number[]) => {
-    setScreen("loading");
-    setError("");
-    try {
-      const response = await fetch("/api/result", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers: nextAnswers }),
-      });
-      if (!response.ok) throw new Error("request failed");
-      const data = (await response.json()) as { result: BirdResult };
-      setResult(data.result);
-    } catch {
-      setResult(scoreQuiz(nextAnswers).result);
+  const resume = useCallback(() => go({ name: "quiz" }), [go]);
+
+  const finish = useCallback((finalAnswers: number[]) => {
+    const firstGap = finalAnswers.indexOf(0);
+    if (firstGap !== -1) {
+      setCurrent(firstGap);
+      return;
     }
-    window.localStorage.removeItem("wbti-progress");
-    window.setTimeout(() => setScreen("result"), 720);
-  }, []);
 
-  const chooseAnswer = useCallback((value: number) => {
+    const result = scoreQuiz(finalAnswers);
+    preloadBird(result.bird.id);
+    setOutcome(result);
+    saveLastAnswers(finalAnswers);
+    clearProgress();
+    setAnswers(emptyAnswers());
+    setCurrent(0);
+    go({ name: "reveal" }, "replace");
+    later(() => go({ name: "result" }, "replace"), prefersReducedMotion() ? 450 : 1300);
+  }, [go, later]);
+
+  const answer = useCallback((value: number) => {
+    if (isAdvancing) return;
     const nextAnswers = [...answers];
     nextAnswers[current] = value;
     setAnswers(nextAnswers);
+    setIsAdvancing(true);
 
-    if (current === QUESTIONS.length - 1) {
-      void submitAnswers(nextAnswers);
-      return;
-    }
-    window.setTimeout(() => setCurrent((index) => index + 1), 180);
-  }, [answers, current, submitAnswers]);
+    later(() => {
+      setIsAdvancing(false);
+      if (current === QUESTIONS.length - 1) finish(nextAnswers);
+      else setCurrent(current + 1);
+    }, ADVANCE_DELAY);
+  }, [answers, current, finish, isAdvancing, later]);
 
-  useEffect(() => {
-    if (screen !== "quiz") return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      const option = ANSWER_OPTIONS[Number(event.key) - 1];
-      if (option) chooseAnswer(option.value);
-      if (event.key === "ArrowLeft" && current > 0) setCurrent((index) => index - 1);
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [chooseAnswer, current, screen]);
+  const back = useCallback(() => {
+    if (current === 0 || isAdvancing) return;
+    setCurrent(current - 1);
+  }, [current, isAdvancing]);
 
-  const copyResult = async () => {
-    if (!result) return;
-    const text = `我的 WBTI 鸟格是「${result.name} ${result.english}」——${result.body}`;
-    await navigator.clipboard?.writeText(text);
-  };
+  const next = useCallback(() => {
+    if (!answers[current] || isAdvancing) return;
+    if (current === QUESTIONS.length - 1) finish(answers);
+    else setCurrent(current + 1);
+  }, [answers, current, finish, isAdvancing]);
+
+  const exitQuiz = useCallback(() => {
+    clearTimers();
+    setIsAdvancing(false);
+    leave({ name: "intro" });
+  }, [clearTimers, leave]);
+
+  const openBird = useCallback((id: string) => go({ name: "bird", id }), [go]);
+  const openGallery = useCallback(() => go({ name: "gallery" }), [go]);
+  const closePoster = useCallback(() => setPosterOpen(false), []);
+
+  const showIntro = view.name === "intro" || (view.name === "result" && !outcome);
+  const bird = view.name === "bird" ? BIRDS_BY_ID[view.id] : null;
 
   return (
-    <main className={`site-shell screen-${screen}`}>
-      {screen === "intro" && (
-        <section className="intro-screen" aria-labelledby="intro-title">
-          <div className="paper-grain" />
-          <header className="brand-row">
-            <div className="mini-brand"><span>WBTI</span><small>WHICH BIRD TYPE INDICATOR</small></div>
-            <div className="wild-stamp">KEEP IT WILD <b>↗</b></div>
-          </header>
-
-          <div className="intro-copy">
-            <p className="eyebrow">WHICH BIRD ARE YOU TODAY?</p>
-            <h1 id="intro-title"><span>今天，</span>测测你的<br /><em>鸟格</em>特质</h1>
-            <p className="intro-note">32 个生活现场，测测你的社交电量、行动节奏和隐藏脑回路。</p>
-
-            <div className="intro-actions">
-              <button className="primary-button" onClick={startFresh}>开测 · 看看我是啥鸟 <span>➜</span></button>
-              {hasSavedProgress && (
-                <button className="resume-button" onClick={() => setScreen("quiz")}>继续上次的第 {current + 1} 题</button>
-              )}
-            </div>
-
-            <div className="quiz-facts" aria-label="测试信息">
-              <span><b>32</b> 道题</span><i />
-              <span><b>5–7</b> 分钟</span><i />
-              <span><b>16</b> 种鸟格</span>
-            </div>
-          </div>
-
-          <div className="hero-collage" aria-hidden="true">
-            <div className="sun-doodle">✦</div>
-            {HERO_BIRDS.map((bird, index) => (
-              <div className={`hero-bird hero-bird-${index + 1}`} key={bird.id}>
-                <img src={bird.image} alt="" />
-              </div>
-            ))}
-            <div className="lake-scribble">˜ ˜ ˜ ˜ ˜</div>
-            <div className="porpoise-bubble">江豚湾的<br />鸟朋友</div>
-          </div>
-
-          <footer className="intro-footer">
-            <span>⌖ 湖口 · 鄱阳湖</span>
-            <span>记录自然 · 遇见自己 ♥</span>
-          </footer>
-        </section>
+    <main className={`app view-${showIntro ? "intro" : view.name}`}>
+      {showIntro && (
+        <IntroScreen
+          headingRef={headingRef}
+          resumeAt={resumeAt}
+          lastBird={outcome?.bird ?? null}
+          onStart={start}
+          onResume={resume}
+          onShowLast={() => go({ name: "result" })}
+          onGallery={openGallery}
+          onOpenBird={openBird}
+        />
       )}
 
-      {screen === "quiz" && (
-        <section className="quiz-screen" aria-labelledby="question-title">
-          <div className="paper-grain" />
-          <header className="quiz-header">
-            <button className="text-button" onClick={() => setScreen("intro")} aria-label="返回封面">← 返回</button>
-            <div className="quiz-logo">WBTI <span>鸟格测试</span></div>
-            <span className="question-count">{String(current + 1).padStart(2, "0")} / {QUESTIONS.length}</span>
-          </header>
-
-          <div className="progress-track" aria-label={`答题进度 ${Math.round(progress)}%`}>
-            <div className="progress-fill" style={{ width: `${progress}%` }} />
-          </div>
-
-          <div className="question-wrap" key={question.id}>
-            <p className="question-kicker">代入一下</p>
-            <h2 id="question-title">{question.scene}</h2>
-            <p className="question-help">别找标准答案，选你的第一反应。</p>
-
-            <div className="answer-stage">
-              <div className="statement-card statement-left">
-                <span>A</span>
-                <p>{question.left}</p>
-                <div className="statement-buttons">
-                  {ANSWER_OPTIONS.slice(0, 2).map((option, optionIndex) => (
-                    <button
-                      key={option.value}
-                      className={answers[current] === option.value ? "selected" : ""}
-                      onClick={() => chooseAnswer(option.value)}
-                    >
-                      <kbd>{optionIndex + 1}</kbd>{option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="or-mark"><span>OR</span></div>
-
-              <div className="statement-card statement-right">
-                <span>B</span>
-                <p>{question.right}</p>
-                <div className="statement-buttons">
-                  {ANSWER_OPTIONS.slice(2).map((option, optionIndex) => (
-                    <button
-                      key={option.value}
-                      className={answers[current] === option.value ? "selected" : ""}
-                      onClick={() => chooseAnswer(option.value)}
-                    >
-                      <kbd>{optionIndex + 3}</kbd>{option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <footer className="quiz-footer">
-            <button className="text-button" disabled={current === 0} onClick={() => setCurrent((index) => index - 1)}>← 上一题</button>
-            <span>已回答 {answeredCount} 题</span>
-            <button className="text-button" disabled={!answers[current] || current === QUESTIONS.length - 1} onClick={() => setCurrent((index) => index + 1)}>下一题 →</button>
-          </footer>
-        </section>
+      {view.name === "quiz" && (
+        <QuizScreen
+          index={current}
+          answers={answers}
+          isAdvancing={isAdvancing}
+          onAnswer={answer}
+          onBack={back}
+          onNext={next}
+          onExit={exitQuiz}
+        />
       )}
 
-      {screen === "loading" && (
-        <section className="loading-screen" aria-live="polite">
-          <div className="paper-grain" />
-          <div className="loading-bird">●</div>
-          <p>正在匹配你的鸟类脑回路…</p>
-          <div className="loading-line"><span /></div>
-        </section>
+      {view.name === "reveal" && <RevealScreen />}
+
+      {view.name === "result" && outcome && (
+        <ResultScreen
+          outcome={outcome}
+          headingRef={headingRef}
+          onPoster={() => setPosterOpen(true)}
+          onRestart={start}
+          onGallery={openGallery}
+          onHome={() => go({ name: "intro" })}
+          onOpenBird={openBird}
+        />
       )}
 
-      {screen === "result" && result && (
-        <section className="result-screen" style={{ "--result-accent": result.accent } as React.CSSProperties} aria-labelledby="result-title">
-          <div className="paper-grain" />
-          <header className="result-header"><span>WBTI · 你的鸟格报告</span><span>江豚湾的鸟朋友</span></header>
-          <div className="result-card">
-            <p className="result-kicker">YOU ARE A</p>
-            <div className="result-image-wrap">
-              <div className="result-tape" />
-              <img src={result.image} alt={`${result.name}的代表鸟插画`} />
-            </div>
-            <div className="result-copy">
-              <h1 id="result-title">{result.name}</h1>
-              <h2>{result.english}</h2>
-              <div className="result-rule" />
-              <p>{result.body}</p>
-            </div>
-          </div>
-          {error && <p className="error-message">{error}</p>}
-          <div className="result-actions">
-            <button className="primary-button" onClick={copyResult}>复制结果 · 发群里</button>
-            <button className="resume-button" onClick={startFresh}>再测一次</button>
-          </div>
-          <p className="result-disclaimer">测试结果仅供自我探索，请勿用于严肃人生决策哦！</p>
-        </section>
+      {view.name === "gallery" && (
+        <GalleryScreen
+          headingRef={headingRef}
+          myCode={outcome?.code ?? null}
+          onBack={() => leave({ name: "intro" })}
+          onOpenBird={openBird}
+        />
       )}
+
+      {bird && view.name === "bird" && (
+        <BirdScreen
+          key={bird.id}
+          bird={bird}
+          shared={Boolean(view.shared)}
+          isMine={bird.code === outcome?.code}
+          headingRef={headingRef}
+          onBack={() => (view.shared ? go({ name: "intro" }) : leave({ name: "gallery" }))}
+          onStart={bird.code === outcome?.code || resumeAt === null ? start : resume}
+          onOpenBird={openBird}
+        />
+      )}
+
+      {posterOpen && view.name === "result" && outcome && <PosterSheet bird={outcome.bird} onClose={closePoster} />}
     </main>
   );
 }
