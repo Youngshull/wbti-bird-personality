@@ -18,6 +18,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # 静态构建不需要依赖的安装脚本（esbuild、sharp 等都自带预编译包）。
+      PNPM_CONFIG_STRICT_DEP_BUILDS: "false"
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -25,8 +28,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      # 静态构建不需要依赖的安装脚本（esbuild、sharp 等都自带预编译包）。
-      - run: pnpm install --frozen-lockfile --config.strict-dep-builds=false
+      - run: pnpm install --frozen-lockfile
       - run: node --experimental-strip-types --test tests/quiz.test.mjs
       - run: pnpm build:edgeone
         env:
